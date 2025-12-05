@@ -17,5 +17,8 @@
     "url": "https://github.com/code-ananya/HireWave-Your-personalized-interview-preparation-web-application/issues"
   },
   "homepage": "https://github.com/code-ananya/HireWave-Your-personalized-interview-preparation-web-application#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "inngest": "^3.46.0"
+  }
 }
