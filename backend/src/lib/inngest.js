@@ -7,48 +7,53 @@ export const inngest = new Inngest( { id: "hire-wave" } );
 
 
 const syncUser = inngest.createFunction(
-    { id: "sync-user"},
-    { event: "clerk/user.created"},
-    async ({event}) => {
-        await connectDB();
+  { id: "sync-user" },
+  { event: "clerk/user.created" },
+  async ({ event }) => {
+    await connectDB();
 
-        // --- THE FIX IS HERE ---
-        // event.data is the raw Clerk payload. The actual user data is within event.data.data
-        const userData = event.data.data; 
+    // --- FIX 1: Access the user data object correctly ---
+    // The user data is nested inside 'data' property of the Clerk payload
+    const userData = event.data.data;
+    
+    const { 
+        id, 
+        email_addresses, 
+        primary_email_address_id, // <-- We need this property
+        first_name, 
+        last_name, 
+        image_url 
+    } = userData;
 
-        // Now, destructure safely from userData (the actual user object)
-        const { 
-            id, 
-            email_addresses, 
-            primary_email_address_id, 
-            first_name, 
-            last_name, 
-            image_url 
-        } = userData;
-
-        // The rest of the logic from the previous solution should now work:
-        const primaryEmailObject = email_addresses.find(
-            (emailObj) => emailObj.id === primary_email_address_id
-        );
-
-        const userEmail = primaryEmailObject?.email_address;
-        const userName = `${first_name || ""} ${last_name || ""}`.trim();
-
-        if (!userEmail) {
-            console.error(`Clerk user ${id} created without a primary email. Aborting sync.`);
-            return;
-        }
-        
-        const newUser = {
-            clerkId: id,
-            email: userEmail,
-            name: userName || 'New User',
-            profileImage: image_url || "" 
-        }
-
-        await User.create(newUser)
-        console.log(`User ${id} successfully synced to MongoDB.`);
+    // --- FIX 2: Safely get the primary email ---
+    const primaryEmailObject = email_addresses.find(
+        (emailObj) => emailObj.id === primary_email_address_id
+    );
+    
+    const userEmail = primaryEmailObject?.email_address;
+    
+    // --- Add Check for Required Fields ---
+    if (!userEmail) {
+        console.error(`Clerk user ${id} created without a primary email. Aborting sync.`);
+        return; // Prevents Mongoose validation error
     }
+
+    const newUser = {
+      clerkId: id,
+      email: userEmail, // Use the safely extracted email
+      name: `${first_name || ""} ${last_name || ""}`.trim() || 'New User',
+      profileImage: image_url || "",
+    };
+
+    await User.create(newUser);
+
+    // The Stream integration looks correct based on the inputs
+    await upsertStreamUser({
+      id: newUser.clerkId.toString(),
+      name: newUser.name,
+      image: newUser.profileImage,
+    });
+  }
 );
 
 // The deleteUserFromDB function is already correct.
