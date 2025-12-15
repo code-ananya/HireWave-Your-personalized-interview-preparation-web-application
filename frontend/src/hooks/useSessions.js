@@ -1,7 +1,6 @@
-import {useMutation , useQuery} from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import { sessionApi } from '../api/sessions';
-
+import { useMutation, useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { sessionApi } from "../api/sessions";
 
 export const useCreateSession = () => {
   const result = useMutation({
@@ -14,38 +13,33 @@ export const useCreateSession = () => {
   return result;
 };
 
+export const useActiveSessions = () => {
+  const result = useQuery({
+    queryKey: ["activeSessions"],
+    queryFn: sessionApi.getActiveSessions,
+  });
 
-export const useActiveSessions= () => {
-    const result= useQuery({
-        queryKey:["activeSessions"],
-        queryFn : sessionApi.getActiveSessions
-
-        
-    });
-    return result;
+  return result;
 };
 
+export const useMyRecentSessions = () => {
+  const result = useQuery({
+    queryKey: ["myRecentSessions"],
+    queryFn: sessionApi.getMyRecentSessions,
+  });
 
-export const useMyRecentSessions= () => {
-    const result= useQuery({
-        queryKey:["myRecentSessions"],
-        queryFn : sessionApi.getMyRecentSessions
-
-        
-    });
-    return result;
+  return result;
 };
 
-export const useSessionsById= (id) => {
-    const result= useQuery({
-        queryKey:["session",id],
-        queryFn : sessionApi.getSessionById(id),
-        enabled: !!id,
-        refetchInterval:5000,
+export const useSessionsById = (id) => {
+  const result = useQuery({
+    queryKey: ["session", id],
+    queryFn: () => sessionApi.getSessionById(id),
+    enabled: !!id,
+    refetchInterval: 5000, // refetch every 5 seconds to detect session status changes
+  });
 
-        
-    });
-    return result;
+  return result;
 };
 
 export const useJoinSession = () => {
@@ -69,5 +63,3 @@ export const useEndSession = () => {
 
   return result;
 };
-
-
