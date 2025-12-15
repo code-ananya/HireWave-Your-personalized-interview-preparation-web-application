@@ -2452,7 +2452,7 @@ print(maxArea([1,1]))  # Expected: 1`,
       python: "5\n0\n2",
       java: "5\n0\n2",
     },
-  }
+  },
   "k-closest-points-to-origin": {
     id: "k-closest-points-to-origin",
     title: "K Closest Points to Origin",
